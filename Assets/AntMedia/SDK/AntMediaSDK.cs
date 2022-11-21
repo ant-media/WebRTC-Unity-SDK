@@ -43,6 +43,7 @@ namespace Unity.WebRTC.AntMedia.SDK
     public class WebRTCClient
     {
         string streamId;
+        string websocketUrl;
         WebSocket websocket;
         private RTCPeerConnection localPC;
         MediaStream localStream;
@@ -50,11 +51,11 @@ namespace Unity.WebRTC.AntMedia.SDK
         MonoBehaviour mb;
 
 
-        public WebRTCClient(string streamId, MonoBehaviour mb) {
+        public WebRTCClient(string streamId, MonoBehaviour mb, string websocketUrl) {
             this.mb = mb;
             this.streamId = streamId;
+            this.websocketUrl = websocketUrl;
 
-            CreatePeerConnection();
             ConnectToWebSocket();
         }
 
@@ -115,6 +116,17 @@ namespace Unity.WebRTC.AntMedia.SDK
                 Debug.Log("---- Tracks "+track);
                 localPC.AddTrack(track, localStream);
             }  
+        }
+
+        public void Join()
+        {
+            CreatePeerConnection();
+            SendJoinMessage();
+        }
+
+        public void Leave() {
+            SendLeaveMessage();
+            localPC.Dispose();
         }
 
 
@@ -190,10 +202,8 @@ namespace Unity.WebRTC.AntMedia.SDK
 /*************************************************************************************************************/
 
         public void ConnectToWebSocket() {
-            websocket = new WebSocket("ws://localhost:5080/LiveApp/websocket");
-            //websocket = new WebSocket("wss://ovh36.antmedia.io:5443/LiveApp/websocket");
-
-
+            websocket = new WebSocket(websocketUrl);
+            
             websocket.OnOpen += () =>
             {
                 Debug.Log("Connection open!");
@@ -286,6 +296,18 @@ namespace Unity.WebRTC.AntMedia.SDK
 
             SendWebSocketMessage(msg.ToString());
         }
+
+        public void SendLeaveMessage() {
+
+            JSONObject msg = new JSONObject();
+
+            msg.Add( "command", "leave");
+            msg.Add( "streamId", streamId);
+
+            SendWebSocketMessage(msg.ToString());
+        }
+
+
 
          public void SendDescriptionMessage(string type, string sdp) {
 

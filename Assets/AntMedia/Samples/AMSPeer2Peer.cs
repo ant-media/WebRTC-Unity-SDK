@@ -50,30 +50,16 @@ namespace Unity.WebRTC.AntMedia.SDK
 
         private void Start()
         {
-            webRTClient = new WebRTCClient("stream1", this);
+            //string websocketUrl = "ws://localhost:5080/LiveApp/websocket";
+            string websocketUrl = "wss://ovh36.antmedia.io:5443/LiveApp/websocket";
+            webRTClient = new WebRTCClient("stream1", this, websocketUrl);
             joinButton.interactable = true;
             leaveButton.interactable = false;
             localStream = new MediaStream();
 
 
 
-            webRTClient.setDelegateOnTrack(e =>
-            {
-                if (e.Track is VideoStreamTrack video)
-                {
-                    video.OnVideoReceived += tex =>
-                    {
-                        receiveImage.texture = tex;
-                    };
-                }
-
-                if (e.Track is AudioStreamTrack audioTrack)
-                {
-                    receiveAudio.SetTrack(audioTrack);
-                    receiveAudio.loop = true;
-                    receiveAudio.Play();
-                }
-            });
+            
 
             CaptureAudioStart();
             StartCoroutine(CaptureVideoStart());
@@ -92,12 +78,34 @@ namespace Unity.WebRTC.AntMedia.SDK
 
         private void Join()
         {
-            webRTClient.SendJoinMessage();
+            webRTClient.Join();
+            webRTClient.SetLocalStream(localStream);
+            webRTClient.setDelegateOnTrack(e =>
+            {
+                if (e.Track is VideoStreamTrack video)
+                {
+                    video.OnVideoReceived += tex =>
+                    {
+                        receiveImage.texture = tex;
+                    };
+                }
+
+                if (e.Track is AudioStreamTrack audioTrack)
+                {
+                    receiveAudio.SetTrack(audioTrack);
+                    receiveAudio.loop = true;
+                    receiveAudio.Play();
+                }
+            });
+            joinButton.interactable = false;
+            leaveButton.interactable = true;
         }
 
         private void Leave()
         {
-            webRTClient.SendJoinMessage();
+            webRTClient.Leave();
+            joinButton.interactable = true;
+            leaveButton.interactable = false;
         }
       
 
@@ -130,7 +138,6 @@ namespace Unity.WebRTC.AntMedia.SDK
             sourceImage.texture = webCamTexture;
             localStream.AddTrack(videoStreamTrack);
 
-            webRTClient.SetLocalStream(localStream);
         }
     }
 
