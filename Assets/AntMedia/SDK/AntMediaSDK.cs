@@ -124,6 +124,18 @@ namespace Unity.WebRTC.AntMedia.SDK
             SendJoinMessage();
         }
 
+        public void Publish()
+        {
+            CreatePeerConnection();
+            SendPublishMessage();
+        }
+
+        public void Play()
+        {
+            CreatePeerConnection();
+            SendPlayMessage();
+        }
+
         public void Leave() {
             SendLeaveMessage();
             localPC.Dispose();
@@ -292,6 +304,27 @@ namespace Unity.WebRTC.AntMedia.SDK
             JSONObject msg = new JSONObject();
 
             msg.Add( "command", "join");
+            msg.Add( "streamId", streamId);
+
+            SendWebSocketMessage(msg.ToString());
+        }
+
+
+        public void SendPublishMessage() {
+
+            JSONObject msg = new JSONObject();
+
+            msg.Add( "command", "publish");
+            msg.Add( "streamId", streamId);
+
+            SendWebSocketMessage(msg.ToString());
+        }
+
+        public void SendPlayMessage() {
+
+            JSONObject msg = new JSONObject();
+
+            msg.Add( "command", "play");
             msg.Add( "streamId", streamId);
 
             SendWebSocketMessage(msg.ToString());

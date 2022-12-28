@@ -23,10 +23,14 @@ namespace Unity.WebRTC.AntMedia.SDK
         [SerializeField] private Transform rotateObject;
 #pragma warning restore 0649
 
+        public const int MODE_P2P = 0;
+        public const int MODE_PUBLISH = 1;
+        public const int MODE_PLAY = 2;
         private VideoStreamTrack videoStreamTrack;
         private AudioStreamTrack audioStreamTrack;
         private WebCamTexture webCamTexture;
         private MediaStream localStream;
+        private int mode = MODE_PLAY;
 
         WebRTCClient webRTClient;
 
@@ -50,8 +54,8 @@ namespace Unity.WebRTC.AntMedia.SDK
 
         private void Start()
         {
-            //string websocketUrl = "ws://localhost:5080/LiveApp/websocket";
-            string websocketUrl = "wss://ovh36.antmedia.io:5443/LiveApp/websocket";
+            string websocketUrl = "ws://localhost:5080/LiveApp/websocket";
+            //string websocketUrl = "wss://meet.antmedia.io:5443/LiveApp/websocket";
             webRTClient = new WebRTCClient("stream1", this, websocketUrl);
             joinButton.interactable = true;
             leaveButton.interactable = false;
@@ -60,9 +64,10 @@ namespace Unity.WebRTC.AntMedia.SDK
 
 
             
-
-            CaptureAudioStart();
-            StartCoroutine(CaptureVideoStart());
+            if(mode != MODE_PLAY) {
+                CaptureAudioStart();
+                StartCoroutine(CaptureVideoStart());
+            }
             StartCoroutine(WebRTC.Update());
         }
 
@@ -78,8 +83,18 @@ namespace Unity.WebRTC.AntMedia.SDK
 
         private void Join()
         {
-            webRTClient.Join();
-            webRTClient.SetLocalStream(localStream);
+            if(mode == MODE_P2P) {
+                webRTClient.Join();
+                webRTClient.SetLocalStream(localStream);
+            }
+            else if(mode == MODE_PUBLISH) {
+                webRTClient.Publish();
+                webRTClient.SetLocalStream(localStream);
+            }
+            else if(mode == MODE_PLAY) {
+                webRTClient.Play();
+            }
+            
             webRTClient.setDelegateOnTrack(e =>
             {
                 if (e.Track is VideoStreamTrack video)
