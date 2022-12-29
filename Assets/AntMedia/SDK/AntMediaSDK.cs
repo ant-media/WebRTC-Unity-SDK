@@ -72,7 +72,7 @@ namespace Unity.WebRTC.AntMedia.SDK
             localPC = new RTCPeerConnection(ref configuration);
             localPC.OnIceCandidate = candidate => { 
                 Debug.Log("ICE candidate created:"+ candidate.Candidate);
-                SendCandidateMessage((long)candidate.SdpMLineIndex, candidate.Candidate); 
+                SendCandidateMessage(candidate.sdpMid, (long)candidate.SdpMLineIndex, candidate.Candidate); 
             };
             localPC.OnIceConnectionChange = state => { 
                 switch (state)
@@ -355,7 +355,7 @@ namespace Unity.WebRTC.AntMedia.SDK
         }
 
 
-        public void SendCandidateMessage(long mlineindex, string candidate) {
+        public void SendCandidateMessage(string sdpMid, long mlineindex, string candidate) {
 
             JSONObject msg = new JSONObject();
 
@@ -363,6 +363,7 @@ namespace Unity.WebRTC.AntMedia.SDK
             msg.Add( "streamId", streamId);
             msg.Add( "candidate", candidate);
             msg.Add( "label", mlineindex);
+            msg.Add( "id", sdpMid);
 
             SendWebSocketMessage(msg.ToString());
         }
