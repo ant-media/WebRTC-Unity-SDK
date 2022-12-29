@@ -30,7 +30,7 @@ namespace Unity.WebRTC.AntMedia.SDK
         private AudioStreamTrack audioStreamTrack;
         private WebCamTexture webCamTexture;
         private MediaStream localStream;
-        private int mode = MODE_PUBLISH;
+        private int mode = MODE_PLAY;
 
         WebRTCClient webRTClient;
 
