@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/AntMedia/Samples/AMSPeer2Peer.unity
+    path: Assets/AntMedia/Samples/AMSStreamingSample.unity
     guid: 0ff78d93b95d29044b16be8c4cce1c6b
   m_configObjects: {}

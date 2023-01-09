@@ -10,17 +10,17 @@ using Unity.WebRTC;
 
 namespace Unity.WebRTC.AntMedia.SDK
 {
-    class AMSPeer2Peer : MonoBehaviour
+    class AMSStreamingSample : MonoBehaviour
     {
 #pragma warning disable 0649
-        [SerializeField] private Button joinButton;
-        [SerializeField] private Button leaveButton;
+        [SerializeField] private Button startButton;
+        [SerializeField] private Button stopButton;
+        [SerializeField] private Dropdown modeDropdown;
         [SerializeField] private Camera cam;
         [SerializeField] private RawImage sourceImage;
         [SerializeField] private AudioSource sourceAudio;
         [SerializeField] private RawImage receiveImage;
         [SerializeField] private AudioSource receiveAudio;
-        [SerializeField] private Transform rotateObject;
 #pragma warning restore 0649
 
         public const int MODE_P2P = 0;
@@ -30,15 +30,15 @@ namespace Unity.WebRTC.AntMedia.SDK
         private AudioStreamTrack audioStreamTrack;
         private WebCamTexture webCamTexture;
         private MediaStream localStream;
-        private int mode = MODE_PUBLISH;
+        private int mode = MODE_P2P;
 
         WebRTCClient webRTClient;
 
         private void Awake()
         {
-            WebRTC.Initialize(WebRTCSettings.LimitTextureSize);
-            joinButton.onClick.AddListener(Join);
-            leaveButton.onClick.AddListener(Leave);
+            WebRTC.Initialize(true);
+            startButton.onClick.AddListener(StartButtonPressed);
+            stopButton.onClick.AddListener(StopButtonPressed);
         }
 
         private void OnDestroy()
@@ -53,36 +53,27 @@ namespace Unity.WebRTC.AntMedia.SDK
         }
 
         private void Start()
-        {
+        {  
+            StartCoroutine(WebRTC.Update());
+            startButton.interactable = true;
+            stopButton.interactable = false;
+        }
+        
+        private IEnumerator StartStreaming()
+        {           
             string websocketUrl = "ws://localhost:5080/LiveApp/websocket";
             //string websocketUrl = "wss://meet.antmedia.io:5443/LiveApp/websocket";
             webRTClient = new WebRTCClient("stream1", this, websocketUrl);
-            joinButton.interactable = true;
-            leaveButton.interactable = false;
             localStream = new MediaStream();
 
-
-
-            
             if(mode != MODE_PLAY) {
                 CaptureAudioStart();
                 StartCoroutine(CaptureVideoStart());
             }
-            StartCoroutine(WebRTC.Update());
-        }
 
-        private void Update()
-        {
-            if (rotateObject != null)
-            {
-                rotateObject.Rotate(1, 2, 3);
-            }
+            Debug.Log("Waiting for websocket connection...");
+            yield return new WaitUntil(() => webRTClient.IsReady());
 
-            webRTClient.Update();
-        }
-
-        private void Join()
-        {
             if(mode == MODE_P2P) {
                 webRTClient.Join();
                 webRTClient.SetLocalStream(localStream);
@@ -97,6 +88,7 @@ namespace Unity.WebRTC.AntMedia.SDK
             
             webRTClient.setDelegateOnTrack(e =>
             {
+
                 if (e.Track is VideoStreamTrack video)
                 {
                     video.OnVideoReceived += tex =>
@@ -112,15 +104,44 @@ namespace Unity.WebRTC.AntMedia.SDK
                     receiveAudio.Play();
                 }
             });
-            joinButton.interactable = false;
-            leaveButton.interactable = true;
         }
 
-        private void Leave()
+        private void Update()
+        {
+            if(webRTClient != null) {
+                webRTClient.Update();
+            }
+        }
+
+        private void StartButtonPressed()
+        {
+            string selectedMode = modeDropdown.options[modeDropdown.value].text;
+
+            if(String.Equals(selectedMode, "Publish")) {
+                mode = MODE_PUBLISH; 
+            }
+            else if(String.Equals(selectedMode, "Play"))  {
+                mode = MODE_PLAY;     
+            }
+            else if(String.Equals(selectedMode, "P2P"))  {
+                mode = MODE_P2P;     
+            }
+            else {
+                Debug.Log("Undefined Streaming Mode:"+mode);
+            }
+
+            Debug.Log("Streaming Mode:"+mode);
+
+            startButton.interactable = false;
+            stopButton.interactable = true;
+            StartCoroutine(StartStreaming());
+        }
+
+        private void StopButtonPressed()
         {
             webRTClient.Leave();
-            joinButton.interactable = true;
-            leaveButton.interactable = false;
+            startButton.interactable = true;
+            stopButton.interactable = false;
         }
       
 
@@ -145,7 +166,7 @@ namespace Unity.WebRTC.AntMedia.SDK
         private IEnumerator CaptureVideoStart()
         {
             WebCamDevice userCameraDevice = WebCamTexture.devices[0];
-            webCamTexture = new WebCamTexture(userCameraDevice.name, WebRTCSettings.StreamSize.x, WebRTCSettings.StreamSize.y, 30);
+            webCamTexture = new WebCamTexture(userCameraDevice.name, 1280, 720, 30);
             webCamTexture.Play();
             yield return new WaitUntil(() => webCamTexture.didUpdateThisFrame);          
 

@@ -12,34 +12,7 @@ using Unity.WebRTC;
 
 namespace Unity.WebRTC.AntMedia.SDK
 {
-    internal static class WebRTCSettings
-    {
-        public const int DefaultStreamWidth = 1280;
-        public const int DefaultStreamHeight = 720;
-
-        private static bool s_limitTextureSize = true;
-        private static Vector2Int s_StreamSize = new Vector2Int(DefaultStreamWidth, DefaultStreamHeight);
-        private static RTCRtpCodecCapability s_useVideoCodec = null;
-
-        public static bool LimitTextureSize
-        {
-            get { return s_limitTextureSize; }
-            set { s_limitTextureSize = value; }
-        }
-
-        public static Vector2Int StreamSize
-        {
-            get { return s_StreamSize; }
-            set { s_StreamSize = value; }
-        }
-
-        public static RTCRtpCodecCapability UseVideoCodec
-        {
-            get { return s_useVideoCodec; }
-            set { s_useVideoCodec = value; }
-        }
-    }
-    
+   
     public class WebRTCClient
     {
         string streamId;
@@ -49,6 +22,7 @@ namespace Unity.WebRTC.AntMedia.SDK
         MediaStream localStream;
         RTCSessionDescription remoteSDP, localSDP;
         MonoBehaviour mb;
+        bool ready = false;
 
 
         public WebRTCClient(string streamId, MonoBehaviour mb, string websocketUrl) {
@@ -72,7 +46,7 @@ namespace Unity.WebRTC.AntMedia.SDK
             localPC = new RTCPeerConnection(ref configuration);
             localPC.OnIceCandidate = candidate => { 
                 Debug.Log("ICE candidate created:"+ candidate.Candidate);
-                SendCandidateMessage(candidate.sdpMid, (long)candidate.SdpMLineIndex, candidate.Candidate); 
+                SendCandidateMessage(candidate.SdpMid, (long)candidate.SdpMLineIndex, candidate.Candidate); 
             };
             localPC.OnIceConnectionChange = state => { 
                 switch (state)
@@ -141,7 +115,10 @@ namespace Unity.WebRTC.AntMedia.SDK
             localPC.Dispose();
         }
 
-
+        public bool IsReady() {
+            return ready;
+        }
+    
 
 
 
@@ -219,6 +196,7 @@ namespace Unity.WebRTC.AntMedia.SDK
             websocket.OnOpen += () =>
             {
                 Debug.Log("Connection open!");
+                ready = true;
             };
 
             websocket.OnError += (e) =>
