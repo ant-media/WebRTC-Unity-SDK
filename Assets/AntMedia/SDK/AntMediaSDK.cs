@@ -16,6 +16,7 @@ namespace Unity.WebRTC.AntMedia.SDK
     public class WebRTCClient
     {
         string streamId;
+        string tokenId;
         string websocketUrl;
         WebSocket websocket;
         private RTCPeerConnection localPC;
@@ -25,9 +26,10 @@ namespace Unity.WebRTC.AntMedia.SDK
         bool ready = false;
 
 
-        public WebRTCClient(string streamId, MonoBehaviour mb, string websocketUrl) {
+        public WebRTCClient(string streamId, MonoBehaviour mb, string websocketUrl, string tokenId = null) {
             this.mb = mb;
             this.streamId = streamId;
+            this.tokenId = tokenId;
             this.websocketUrl = websocketUrl;
 
             ConnectToWebSocket();
@@ -268,6 +270,20 @@ namespace Unity.WebRTC.AntMedia.SDK
             }
         }
 
+        private JSONObject CreateBaseMessageObject(string command, bool setToken)
+        {
+            JSONObject messageObj = new JSONObject();
+            messageObj.Add("command", command);
+            messageObj.Add("streamId", streamId);
+
+            if (setToken && !string.IsNullOrEmpty(tokenId))
+            {
+                messageObj.Add("token", tokenId);
+            }
+
+            return messageObj;
+        }
+
         public void SendWebSocketMessage(string msg)
         {
             if (websocket.State == WebSocketState.Open)
@@ -277,75 +293,47 @@ namespace Unity.WebRTC.AntMedia.SDK
             }
         }
 
-        public void SendJoinMessage() {
+        public void SendJoinMessage()
+        {
+            JSONObject msg = CreateBaseMessageObject("join", true);
+            SendWebSocketMessage(msg.ToString());
+        }
 
-            JSONObject msg = new JSONObject();
+        public void SendPublishMessage()
+        {
+            JSONObject msg = CreateBaseMessageObject("publish", true);
+            SendWebSocketMessage(msg.ToString());
+        }
 
-            msg.Add( "command", "join");
-            msg.Add( "streamId", streamId);
+        public void SendPlayMessage()
+        {
+            JSONObject msg = CreateBaseMessageObject("play", true);
+            SendWebSocketMessage(msg.ToString());
+        }
+
+        public void SendLeaveMessage()
+        {
+            JSONObject msg = CreateBaseMessageObject("leave", false);
+            SendWebSocketMessage(msg.ToString());
+        }
+
+        public void SendDescriptionMessage(string type, string sdp)
+        {
+            JSONObject msg = CreateBaseMessageObject("takeConfiguration", false);
+            msg.Add("type", type);
+            msg.Add("sdp", sdp);
 
             SendWebSocketMessage(msg.ToString());
         }
 
-
-        public void SendPublishMessage() {
-
-            JSONObject msg = new JSONObject();
-
-            msg.Add( "command", "publish");
-            msg.Add( "streamId", streamId);
-
-            SendWebSocketMessage(msg.ToString());
-        }
-
-        public void SendPlayMessage() {
-
-            JSONObject msg = new JSONObject();
-
-            msg.Add( "command", "play");
-            msg.Add( "streamId", streamId);
+        public void SendCandidateMessage(string sdpMid, long mlineindex, string candidate)
+        {
+            JSONObject msg = CreateBaseMessageObject("takeCandidate", false);
+            msg.Add("candidate", candidate);
+            msg.Add("label", mlineindex);
+            msg.Add("id", sdpMid);
 
             SendWebSocketMessage(msg.ToString());
         }
-
-        public void SendLeaveMessage() {
-
-            JSONObject msg = new JSONObject();
-
-            msg.Add( "command", "leave");
-            msg.Add( "streamId", streamId);
-
-            SendWebSocketMessage(msg.ToString());
-        }
-
-
-
-         public void SendDescriptionMessage(string type, string sdp) {
-
-            JSONObject msg = new JSONObject();
-
-            msg.Add( "command", "takeConfiguration");
-            msg.Add( "streamId", streamId);
-            msg.Add( "type", type);
-            msg.Add( "sdp", sdp);
-
-            SendWebSocketMessage(msg.ToString());
-        }
-
-
-        public void SendCandidateMessage(string sdpMid, long mlineindex, string candidate) {
-
-            JSONObject msg = new JSONObject();
-
-            msg.Add( "command", "takeCandidate");
-            msg.Add( "streamId", streamId);
-            msg.Add( "candidate", candidate);
-            msg.Add( "label", mlineindex);
-            msg.Add( "id", sdpMid);
-
-            SendWebSocketMessage(msg.ToString());
-        }
-
-        
     }
 }
