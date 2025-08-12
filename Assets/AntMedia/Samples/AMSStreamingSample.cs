@@ -152,7 +152,7 @@ namespace Unity.WebRTC.AntMedia.SDK
             var micClip = Microphone.Start(deviceName, true, 1, 48000);
 
             // set the latency to “0” samples before the audio starts to play.
-            while (!(Microphone.GetPosition(deviceName) > 0)) {}
+            //while (!(Microphone.GetPosition(deviceName) > 0)) {}
 
             sourceAudio.clip = micClip;
             sourceAudio.loop = true;

@@ -117,6 +117,11 @@ namespace Unity.WebRTC.AntMedia.SDK
             localPC.Dispose();
         }
 
+        public void Stop() {
+            SendStopMessage();
+            localPC.Dispose();
+        }
+
         public bool IsReady() {
             return ready;
         }
@@ -314,6 +319,12 @@ namespace Unity.WebRTC.AntMedia.SDK
         public void SendLeaveMessage()
         {
             JSONObject msg = CreateBaseMessageObject("leave", false);
+            SendWebSocketMessage(msg.ToString());
+        }
+
+        public void SendStopMessage()
+        {
+            JSONObject msg = CreateBaseMessageObject("stop", false);
             SendWebSocketMessage(msg.ToString());
         }
 

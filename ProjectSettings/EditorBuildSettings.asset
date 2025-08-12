@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/AntMedia/Samples/AMSStreamingSample.unity
-    guid: 0ff78d93b95d29044b16be8c4cce1c6b
+    path: Assets/AntMedia/Samples/PublishSample.unity
+    guid: be299ec0af2090f458a999a52092423b
   m_configObjects: {}
