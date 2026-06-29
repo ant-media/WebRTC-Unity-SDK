@@ -56,7 +56,7 @@ namespace Unity.WebRTC.AntMedia.SDK
         private IEnumerator StartStreaming()
         {           
             //string websocketUrl = "ws://localhost:5080/LiveApp/websocket";
-            string websocketUrl = "wss://test.antmedia.io:5443/unitydemo/websocket";
+            string websocketUrl = "wss://test.antmedia.io:5443/live/websocket";
             webRTClient = new WebRTCClient(streamIdField.text, this, websocketUrl);
             localStream = new MediaStream();
 
